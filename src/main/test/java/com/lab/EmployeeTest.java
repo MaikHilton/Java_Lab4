@@ -3,34 +3,57 @@ package com.lab;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Клас для модульного тестування (JUnit 5) логіки Employee.
+ */
 class EmployeeTest {
 
     @Test
     void shouldThrowExceptionWhenInvalidValueInSetter() {
-        Employee emp = new Employee("Іван", "Іванов", "Розробник", 40000.0, 3, "IT");
+        Employee emp = new Employee("Тест", "Тестович", "IT", Position.QA, 10000, 2);
 
-        // Перевіряємо, що встановлення від'ємної зарплати викидає виняток
+        // Перевірка валідації зарплати
         assertThrows(IllegalArgumentException.class, () -> {
             emp.setSalary(-500);
         });
 
-        // Перевіряємо помилку при порожньому відділі
+        // Перевірка валідації стажу
         assertThrows(IllegalArgumentException.class, () -> {
-            emp.setDepartment("   ");
+            emp.setExperienceYears(-1);
         });
     }
 
     @Test
     void shouldThrowExceptionWhenInvalidConstructorData() {
-        // Перевіряємо, що створення об'єкта з порожнім іменем викидає виняток
+        // Перевірка порожнього імені
         assertThrows(IllegalArgumentException.class, () -> {
-            new Employee("", "Коваль", "Дизайнер", 30000.0, 2, "Дизайн");
+            new Employee("", "Прізвище", "Відділ", Position.DEVELOPER, 10000, 2);
         });
 
-        // Перевіряємо від'ємний стаж у конструкторі
+        // Перевірка null для посади (enum)
         assertThrows(IllegalArgumentException.class, () -> {
-            new Employee("Анна", "Петрова", "Менеджер", 50000.0, -1, "HR");
+            new Employee("Ім'я", "Прізвище", "Відділ", null, 10000, 2);
         });
     }
-}
 
+    @Test
+    void shouldCreateExactCopyUsingCopyConstructor() {
+        Employee original = new Employee("Оригінал", "Оригіналович", "Sales", Position.MANAGER, 25000, 5);
+        Employee copy = new Employee(original);
+
+        // Об'єкти мають бути різними у пам'яті (різні посилання)
+        assertNotSame(original, copy);
+
+        // Але їхній вміст має бути ідентичним (спрацьовує перевизначений equals)
+        assertEquals(original, copy);
+    }
+
+    @Test
+    void shouldIncrementStaticCounterWhenCreated() {
+        int initialCount = Employee.getTotalEmployees();
+
+        new Employee("Тест", "Статика", "IT", Position.HR, 15000, 1);
+
+        assertEquals(initialCount + 1, Employee.getTotalEmployees());
+    }
+}
