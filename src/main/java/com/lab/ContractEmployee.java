@@ -29,3 +29,5 @@ public class ContractEmployee extends Employee {
                 getFirstName(), getLastName(), getSalary(), contractMonths);
     }
 }
+
+
