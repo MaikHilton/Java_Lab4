@@ -1,6 +1,10 @@
-FullTimeEmployee;Марія;Коваль;22000.0;5000.0
-ContractEmployee;Дмитро;Бондар;18000.0;6
-Manager;Іван;Яценко;35000.0;12000.0;8
-Intern;Анна;Лисенко;6500.0;СумДУ
-FullTimeEmployee;Ivan;Ivanenko;20000.0;10000.0
-Intern;Maksym;Maksymow;13500.0;SumDU
+Company;IT СумДУ
+FullTimeEmployee;Марія;Коваль;22000.0;5000.0;1
+ContractEmployee;Дмитро;Бондар;18000.0;6;1
+Manager;Іван;Яценко;35000.0;12000.0;8;1
+Intern;Анна;Лисенко;6500.0;СумДУ;1
+FullTimeEmployee;Ivan;Ivanenko;20000.0;10000.0;1
+Intern;Maksym;Maksymow;13500.0;SumDU;1
+Manager;Test;Testovi;23675.0;2600.0;1;5
+FullTimeEmployee;Test;Testovione;30000.0;5000.0;1
+Manager;Test;Testtwo;31000.0;5000.0;10;2
