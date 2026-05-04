@@ -1,82 +1,91 @@
 package com.lab;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Клас для модульного тестування (JUnit 5) логіки ієрархії Employee.
- * Покриває сценарії створення об'єктів різних типів та перевірку виводу інформації.
+ * Тестовий клас для перевірки ієрархії Employee та логіки збереження даних (TXT/JSON).
  */
 class EmployeeTest {
 
-    /**
-     * Тест перевірки створення об'єкта FullTimeEmployee та коректності його даних.
-     */
     @Test
-    void shouldCreateFullTimeEmployeeWithCorrectData() {
-        FullTimeEmployee ftEmp = new FullTimeEmployee("Іван", "Яценко", 20000, 5000);
+    @DisplayName("Тест базового класу Employee та його маркерів")
+    void shouldCreateBaseEmployeeWithCorrectMetadata() {
+        Employee emp = new Employee("Олександр", "Шевченко", 15000.0);
 
-        assertAll("Перевірка полів штатного працівника",
-                () -> assertEquals("Іван", ftEmp.getFirstName()),
-                () -> assertEquals("Яценко", ftEmp.getLastName()),
-                () -> assertEquals(20000, ftEmp.getSalary(), 0.01),
-                () -> assertTrue(ftEmp.toString().contains("з бонусом: 25000"), "toString має містити суму з бонусом")
+        assertAll("Перевірка базового працівника",
+                () -> assertEquals("Employee", emp.getType(), "Поле type має бути Employee для JSON"),
+                () -> assertEquals("Employee;Олександр;Шевченко;15000.0", emp.toFileString(), "Формат для TXT має бути коректним")
         );
     }
 
-    /**
-     * Тест перевірки створення об'єкта ContractEmployee та коректності його даних.
-     */
     @Test
-    void shouldCreateContractEmployeeWithCorrectData() {
-        ContractEmployee ctEmp = new ContractEmployee("Олексій", "Петренко", 15000, 12);
+    @DisplayName("Тест FullTimeEmployee: розрахунок зарплати та маркер")
+    void shouldCreateFullTimeEmployeeAndCalculateTotalSalary() {
+        FullTimeEmployee ft = new FullTimeEmployee("Марія", "Коваль", 20000.0, 5000.0);
 
-        assertAll("Перевірка полів контрактного працівника",
-                () -> assertEquals("Олексій", ctEmp.getFirstName()),
-                () -> assertEquals(15000, ctEmp.getSalary(), 0.01),
-                () -> assertTrue(ctEmp.toString().contains("Термін: 12 міс."), "toString має містити тривалість контракту")
+        assertAll("Перевірка штатного працівника",
+                () -> assertEquals("FullTimeEmployee", ft.getType()),
+                () -> assertTrue(ft.toString().contains("з бонусом: 25000,00"), "toString має виводити суму ставки та бонусу"),
+                () -> assertEquals("FullTimeEmployee;Марія;Коваль;20000.0;5000.0", ft.toFileString())
         );
     }
 
-    /**
-     * Демонстрація поліморфізму через тести: об'єкти різних підкласів
-     * мають оброблятися як базовий тип Employee.
-     */
     @Test
-    void shouldDemonstratePolymorphismInCollection() {
-        java.util.List<Employee> list = new java.util.ArrayList<>();
-        list.add(new FullTimeEmployee("Анна", "Коваль", 30000, 2000));
-        list.add(new ContractEmployee("Максим", "Сидоренко", 10000, 6));
+    @DisplayName("Тест ContractEmployee: термін контракту")
+    void shouldCreateContractEmployeeWithDuration() {
+        ContractEmployee ce = new ContractEmployee("Дмитро", "Бондар", 18000.0, 12);
 
-        // Перевіряємо, що в списку дійсно два об'єкти базового типу
-        assertEquals(2, list.size());
-
-        // Перевіряємо, що перший об'єкт викликає версію toString штатного працівника
-        assertTrue(list.get(0).toString().contains("[Штатний]"));
-
-        // Перевіряємо, що другий об'єкт викликає версію toString контрактника
-        assertTrue(list.get(1).toString().contains("[Контрактник]"));
+        assertAll("Перевірка контрактника",
+                () -> assertEquals("ContractEmployee", ce.getType()),
+                () -> assertTrue(ce.toString().contains("Термін: 12 міс."), "toString має містити тривалість"),
+                () -> assertEquals("ContractEmployee;Дмитро;Бондар;18000.0;12", ce.toFileString())
+        );
     }
 
-    /**
-     * Тест валідації (якщо ви додали перевірки у конструктор базового класу).
-     */
     @Test
-    void shouldHandleValidationIfImplemented() {
-        // Приклад перевірки на від'ємну зарплату (якщо логіка додана в конструктор Employee)
-        // Наразі у наданому коді валідація мінімальна, але це шаблон для розширення:
-        assertDoesNotThrow(() -> new FullTimeEmployee("Тест", "Тестович", 1000, 100));
+    @DisplayName("Тест Manager: успадкування та команда")
+    void shouldCreateManagerWithTeamSize() {
+        Manager mgr = new Manager("Іван", "Яценко", 30000.0, 10000.0, 5);
+
+        assertAll("Перевірка менеджера",
+                () -> assertEquals("Manager", mgr.getType()),
+                () -> assertEquals(10000.0, mgr.getBonus(), 0.01),
+                () -> assertTrue(mgr.toString().contains("Команда: 5 осіб"), "Має відображатися розмір команди"),
+                () -> assertEquals("Manager;Іван;Яценко;30000.0;10000.0;5", mgr.toFileString())
+        );
     }
 
-    /**
-     * Перевірка того, що статичні лічильники більше не використовуються (вимога лаби 7).
-     * Цей тест підтверджує, що ми видалили getTotalEmployees().
-     */
     @Test
-    void shouldNotHaveStaticCounter() {
-        // Ми просто перевіряємо працездатність об'єктів без звернення до статики
-        Employee emp = new Employee("Степан", "Гіга", 50000);
-        assertNotNull(emp);
-        // Спроба викликати Employee.getTotalEmployees() тепер призведе до помилки компіляції
+    @DisplayName("Тест Intern: назва університету")
+    void shouldCreateInternWithUniversityInfo() {
+        Intern intern = new Intern("Анна", "Лисенко", 8000.0, "СумДУ");
+
+        assertAll("Перевірка стажера",
+                () -> assertEquals("Intern", intern.getType()),
+                () -> assertTrue(intern.toString().contains("ВНЗ: СумДУ"), "Має бути вказано назву ВНЗ"),
+                () -> assertEquals("Intern;Анна;Лисенко;8000.0;СумДУ", intern.toFileString())
+        );
+    }
+
+    @Test
+    @DisplayName("Поліморфізм: перевірка унікальних маркерів у списку")
+    void shouldCheckPolymorphicMarkersInCollection() {
+        List<Employee> list = new ArrayList<>();
+        list.add(new Employee("E1", "L1", 1000));
+        list.add(new FullTimeEmployee("E2", "L2", 2000, 500));
+        list.add(new ContractEmployee("E3", "L3", 3000, 6));
+        list.add(new Manager("E4", "L4", 4000, 1000, 10));
+        list.add(new Intern("E5", "L5", 500, "Університет"));
+
+        String[] expectedTypes = {"Employee", "FullTimeEmployee", "ContractEmployee", "Manager", "Intern"};
+
+        for (int i = 0; i < list.size(); i++) {
+            assertEquals(expectedTypes[i], list.get(i).getType(), "Тип об'єкта під індексом " + i + " некоректний");
+            assertTrue(list.get(i).toFileString().startsWith(expectedTypes[i]), "Рядок TXT має починатися з правильного типу");
+        }
     }
 }
