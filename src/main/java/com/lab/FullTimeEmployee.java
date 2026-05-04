@@ -1,33 +1,36 @@
 package com.lab;
 
 /**
- * Клас, що представляє штатного працівника з фіксованим бонусом.
- * Успадковується від класу {@link Employee}.
+ * Клас, що представляє штатного працівника.
+ * Успадковується від {@link Employee} та додає атрибут бонусу.
  */
 public class FullTimeEmployee extends Employee {
     private double bonus;
 
     /**
      * Конструктор для штатного працівника.
+     *
      * @param firstName Ім'я
-     * @param lastName Прізвище
-     * @param salary Базова ставка
-     * @param bonus Щомісячний бонус
+     * @param lastName  Прізвище
+     * @param salary    Базова ставка
+     * @param bonus     Щомісячний бонус
      */
     public FullTimeEmployee(String firstName, String lastName, double salary, double bonus) {
         super(firstName, lastName, salary);
+        setType("FullTimeEmployee");
         this.bonus = bonus;
     }
 
-    /**
-     * Перевизначений метод для виведення детальної інформації про штатного працівника.
-     * Демонструє принцип поліморфізму.
-     * @return Рядок з іменем, базовою ставкою та розрахованою загальною зарплатою
-     */
+    public double getBonus() { return bonus; }
+
     @Override
     public String toString() {
-        double total = getSalary() + bonus;
         return String.format("[Штатний] %s %s, Зарплата: %.2f (з бонусом: %.2f)",
-                getFirstName(), getLastName(), getSalary(), total);
+                getFirstName(), getLastName(), getSalary(), getSalary() + bonus);
+    }
+
+    @Override
+    public String toFileString() {
+        return "FullTimeEmployee;" + getFirstName() + ";" + getLastName() + ";" + getSalary() + ";" + bonus;
     }
 }
