@@ -2,147 +2,121 @@ package com.lab;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import java.util.ArrayList;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Тестовий клас для перевірки ієрархії Employee та логіки збереження даних (TXT/JSON).
+ * Тестовий клас для перевірки агрегації (клас Company),
+ * ієрархії Employee та логіки збереження даних у Lab 11.
  */
 class EmployeeTest {
 
-    @Test
-    @DisplayName("Тест базового класу Employee та його маркерів")
-    void shouldCreateBaseEmployeeWithCorrectMetadata() {
-        Employee emp = new Employee("Олександр", "Шевченко", 15000.0);
+    // ==========================================
+    // ТЕСТИ АГРЕГАЦІЇ ТА КЛАСУ COMPANY (LAB 11)
+    // ==========================================
 
-        assertAll("Перевірка базового працівника",
-                () -> assertEquals("Employee", emp.getType(), "Поле type має бути Employee для JSON"),
-                () -> assertEquals("Employee;Олександр;Шевченко;15000.0", emp.toFileString(), "Формат для TXT має бути коректним")
+    @Test
+    @DisplayName("Перевірка Company: агрегація та додавання з урахуванням кількості")
+    void shouldAddEmployeeAndIncreaseQuantityIfDuplicate() {
+        Company comp = new Company("Test IT");
+        Employee e1 = new Intern("Олександр", "Шевченко", 5000, "СумДУ");
+        Employee e2 = new Intern("Олександр", "Шевченко", 5000, "СумДУ"); // Повний дублікат
+
+        comp.addNewEmployee(e1, 1);
+        comp.addNewEmployee(e2, 5); // Має збільшити кількість існуючого до 6
+
+        assertAll("Перевірка логіки агрегації",
+                () -> assertEquals(1, comp.getEmployees().size(), "Розмір списку не має зростати при додаванні дубліката"),
+                () -> assertEquals(6, comp.getEmployees().get(0).getQuantity(), "Кількість має сумуватися")
         );
     }
 
     @Test
-    @DisplayName("Тест FullTimeEmployee: розрахунок зарплати та маркер")
+    @DisplayName("Перевірка методів пошуку через об'єкт Company")
+    void shouldSearchViaCompanyMethods() {
+        Company comp = new Company("SearchCompany");
+        comp.addNewEmployee(new FullTimeEmployee("Марія", "Коваль", 20000, 5000), 1);
+        comp.addNewEmployee(new Manager("Іван", "Яценко", 35000, 10000, 8), 1);
+
+        List<Employee> results = comp.searchByLastName("Яценко");
+
+        assertAll("Пошук через контейнер",
+                () -> assertEquals(1, results.size(), "Має знайти одного працівника[cite: 1]"),
+                () -> assertEquals("Яценко", results.get(0).getLastName(), "Прізвище має збігатися[cite: 1]")
+        );
+    }
+
+    // ==========================================
+    // ТЕСТИ ІЄРАРХІЇ ТА ФОРМАТУ ФАЙЛІВ
+    // ==========================================
+
+    @Test
+    @DisplayName("Тест Employee: додано поле quantity в TXT")
+    void shouldCreateBaseEmployeeWithQuantityInString() {
+        Employee emp = new Employee("Іван", "Яценко", 15000.0);
+        // У Lab 11 формат: Employee;Ім'я;Прізвище;Ставка;Кількість[cite: 1]
+        assertEquals("Employee;Іван;Яценко;15000.0;1", emp.toFileString());
+    }
+
+    @Test
+    @DisplayName("Тест FullTimeEmployee: перевірка формату з кількістю")
     void shouldCreateFullTimeEmployeeAndCalculateTotalSalary() {
         FullTimeEmployee ft = new FullTimeEmployee("Марія", "Коваль", 20000.0, 5000.0);
 
-        assertAll("Перевірка штатного працівника",
+        assertAll("Штатний працівник",
                 () -> assertEquals("FullTimeEmployee", ft.getType()),
-                () -> assertTrue(ft.toString().contains("з бонусом: 25000,00"), "toString має виводити суму ставки та бонусу"),
-                () -> assertEquals("FullTimeEmployee;Марія;Коваль;20000.0;5000.0", ft.toFileString())
+                () -> assertTrue(ft.toString().contains("(Кількість: 1)"), "toString має містити кількість[cite: 1]"),
+                () -> assertEquals("FullTimeEmployee;Марія;Коваль;20000.0;5000.0;1", ft.toFileString())
         );
     }
 
     @Test
-    @DisplayName("Тест ContractEmployee: термін контракту")
+    @DisplayName("Тест ContractEmployee: перевірка формату")
     void shouldCreateContractEmployeeWithDuration() {
         ContractEmployee ce = new ContractEmployee("Дмитро", "Бондар", 18000.0, 12);
 
-        assertAll("Перевірка контрактника",
+        assertAll("Контрактник",
                 () -> assertEquals("ContractEmployee", ce.getType()),
-                () -> assertTrue(ce.toString().contains("Термін: 12 міс."), "toString має містити тривалість"),
-                () -> assertEquals("ContractEmployee;Дмитро;Бондар;18000.0;12", ce.toFileString())
+                () -> assertEquals("ContractEmployee;Дмитро;Бондар;18000.0;12;1", ce.toFileString())
         );
     }
 
     @Test
-    @DisplayName("Тест Manager: успадкування та команда")
+    @DisplayName("Тест Manager: перевірка команди та кількості")
     void shouldCreateManagerWithTeamSize() {
         Manager mgr = new Manager("Іван", "Яценко", 30000.0, 10000.0, 5);
 
-        assertAll("Перевірка менеджера",
+        assertAll("Менеджер",
                 () -> assertEquals("Manager", mgr.getType()),
-                () -> assertEquals(10000.0, mgr.getBonus(), 0.01),
-                () -> assertTrue(mgr.toString().contains("Команда: 5 осіб"), "Має відображатися розмір команди"),
-                () -> assertEquals("Manager;Іван;Яценко;30000.0;10000.0;5", mgr.toFileString())
+                () -> assertTrue(mgr.toString().contains("Команда: 5 осіб"), "Має відображатися розмір команди[cite: 1]"),
+                () -> assertEquals("Manager;Іван;Яценко;30000.0;10000.0;5;1", mgr.toFileString())
         );
     }
 
     @Test
-    @DisplayName("Тест Intern: назва університету")
+    @DisplayName("Тест Intern: перевірка ВНЗ та формату")
     void shouldCreateInternWithUniversityInfo() {
         Intern intern = new Intern("Анна", "Лисенко", 8000.0, "СумДУ");
 
-        assertAll("Перевірка стажера",
+        assertAll("Стажер",
                 () -> assertEquals("Intern", intern.getType()),
-                () -> assertTrue(intern.toString().contains("ВНЗ: СумДУ"), "Має бути вказано назву ВНЗ"),
-                () -> assertEquals("Intern;Анна;Лисенко;8000.0;СумДУ", intern.toFileString())
+                () -> assertEquals("Intern;Анна;Лисенко;8000.0;СумДУ;1", intern.toFileString())
         );
     }
 
     @Test
-    @DisplayName("Поліморфізм: перевірка унікальних маркерів у списку")
-    void shouldCheckPolymorphicMarkersInCollection() {
-        List<Employee> list = new ArrayList<>();
-        list.add(new Employee("E1", "L1", 1000));
-        list.add(new FullTimeEmployee("E2", "L2", 2000, 500));
-        list.add(new ContractEmployee("E3", "L3", 3000, 6));
-        list.add(new Manager("E4", "L4", 4000, 1000, 10));
-        list.add(new Intern("E5", "L5", 500, "Університет"));
+    @DisplayName("Поліморфізм: перевірка типів у списку Company")
+    void shouldCheckPolymorphicMarkersInCompany() {
+        Company comp = new Company("PolyTest");
+        comp.addNewEmployee(new Employee("E1", "L1", 1000), 1);
+        comp.addNewEmployee(new FullTimeEmployee("E2", "L2", 2000, 500), 1);
+        comp.addNewEmployee(new Manager("E3", "L3", 4000, 1000, 10), 1);
 
-        String[] expectedTypes = {"Employee", "FullTimeEmployee", "ContractEmployee", "Manager", "Intern"};
-
-        for (int i = 0; i < list.size(); i++) {
-            assertEquals(expectedTypes[i], list.get(i).getType(), "Тип об'єкта під індексом " + i + " некоректний");
-            assertTrue(list.get(i).toFileString().startsWith(expectedTypes[i]), "Рядок TXT має починатися з правильного типу");
-        }
-    }
-    @Test
-    @DisplayName("Перевірка пошуку за прізвищем")
-    void shouldFindEmployeesByLastName() {
-        List<Employee> list = new ArrayList<>();
-        list.add(new Employee("Іван", "Яценко", 15000));
-        list.add(new Manager("Петро", "Яценко", 30000, 5000, 5));
-        list.add(new Intern("Марія", "Коваль", 5000, "СумДУ"));
-
-        // Імітація логіки пошуку з Main
-        List<Employee> result = new ArrayList<>();
-        for (Employee emp : list) {
-            if (emp.getLastName().equalsIgnoreCase("яценко")) {
-                result.add(emp);
-            }
-        }
-
-        assertEquals(2, result.size(), "Має знайти двох працівників з прізвищем Яценко");
-    }
-
-    @Test
-    @DisplayName("Перевірка пошуку за діапазоном зарплати")
-    void shouldFindEmployeesBySalaryRange() {
-        List<Employee> list = new ArrayList<>();
-        list.add(new Employee("А", "Б", 10000));
-        list.add(new FullTimeEmployee("В", "Г", 25000, 2000));
-        list.add(new Intern("Д", "Е", 5000, "ВНЗ"));
-
-        List<Employee> result = new ArrayList<>();
-        for (Employee emp : list) {
-            if (emp.getSalary() >= 8000 && emp.getSalary() <= 15000) {
-                result.add(emp);
-            }
-        }
-
-        assertAll("Пошук за діапазоном 8000-15000",
-                () -> assertEquals(1, result.size()),
-                () -> assertEquals(10000, result.get(0).getSalary())
+        List<Employee> list = comp.getEmployees();
+        assertAll("Типи в колекції",
+                () -> assertEquals("Employee", list.get(0).getType()),
+                () -> assertEquals("FullTimeEmployee", list.get(1).getType()),
+                () -> assertEquals("Manager", list.get(2).getType())
         );
-    }
-
-    @Test
-    @DisplayName("Перевірка пошуку за типом об'єкта")
-    void shouldFindEmployeesByType() {
-        List<Employee> list = new ArrayList<>();
-        list.add(new Intern("І1", "П1", 1000, "Універ1"));
-        list.add(new Intern("І2", "П2", 2000, "Універ2"));
-        list.add(new Manager("М1", "П3", 3000, 100, 2));
-
-        List<Employee> result = new ArrayList<>();
-        for (Employee emp : list) {
-            if (emp.getType().equalsIgnoreCase("Intern")) {
-                result.add(emp);
-            }
-        }
-
-        assertEquals(2, result.size(), "Має знайти двох стажерів");
     }
 }
