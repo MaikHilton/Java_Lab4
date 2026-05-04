@@ -1,20 +1,34 @@
 package com.lab;
 
 /**
- * Клас, що представляє менеджера.
- * Успадковує логіку штатного працівника (FullTimeEmployee) та додає управління командою.
+ * Клас, що представляє менеджера компанії.
+ * Успадковується від {@link FullTimeEmployee} та містить інформацію про розмір команди.
  */
 public class Manager extends FullTimeEmployee {
     private int teamSize;
 
+    /**
+     * Конструктор для менеджера.
+     *
+     * @param firstName Ім'я
+     * @param lastName  Прізвище
+     * @param salary    Базова ставка
+     * @param bonus     Бонус
+     * @param teamSize  Кількість людей у підпорядкуванні
+     */
     public Manager(String firstName, String lastName, double salary, double bonus, int teamSize) {
-        super(firstName, lastName, salary, bonus); // Виклик конструктора FullTimeEmployee
+        super(firstName, lastName, salary, bonus);
+        setType("Manager");
         this.teamSize = teamSize;
     }
 
     @Override
     public String toString() {
-        // Використовуємо toString() батька і додаємо свою інформацію
-        return super.toString() + String.format(", Розмір команди: %d осіб", teamSize);
+        return super.toString() + String.format(", Команда: %d осіб", teamSize);
+    }
+
+    @Override
+    public String toFileString() {
+        return "Manager;" + getFirstName() + ";" + getLastName() + ";" + getSalary() + ";" + getBonus() + ";" + teamSize;
     }
 }
