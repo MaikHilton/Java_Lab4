@@ -88,4 +88,61 @@ class EmployeeTest {
             assertTrue(list.get(i).toFileString().startsWith(expectedTypes[i]), "Рядок TXT має починатися з правильного типу");
         }
     }
+    @Test
+    @DisplayName("Перевірка пошуку за прізвищем")
+    void shouldFindEmployeesByLastName() {
+        List<Employee> list = new ArrayList<>();
+        list.add(new Employee("Іван", "Яценко", 15000));
+        list.add(new Manager("Петро", "Яценко", 30000, 5000, 5));
+        list.add(new Intern("Марія", "Коваль", 5000, "СумДУ"));
+
+        // Імітація логіки пошуку з Main
+        List<Employee> result = new ArrayList<>();
+        for (Employee emp : list) {
+            if (emp.getLastName().equalsIgnoreCase("яценко")) {
+                result.add(emp);
+            }
+        }
+
+        assertEquals(2, result.size(), "Має знайти двох працівників з прізвищем Яценко");
+    }
+
+    @Test
+    @DisplayName("Перевірка пошуку за діапазоном зарплати")
+    void shouldFindEmployeesBySalaryRange() {
+        List<Employee> list = new ArrayList<>();
+        list.add(new Employee("А", "Б", 10000));
+        list.add(new FullTimeEmployee("В", "Г", 25000, 2000));
+        list.add(new Intern("Д", "Е", 5000, "ВНЗ"));
+
+        List<Employee> result = new ArrayList<>();
+        for (Employee emp : list) {
+            if (emp.getSalary() >= 8000 && emp.getSalary() <= 15000) {
+                result.add(emp);
+            }
+        }
+
+        assertAll("Пошук за діапазоном 8000-15000",
+                () -> assertEquals(1, result.size()),
+                () -> assertEquals(10000, result.get(0).getSalary())
+        );
+    }
+
+    @Test
+    @DisplayName("Перевірка пошуку за типом об'єкта")
+    void shouldFindEmployeesByType() {
+        List<Employee> list = new ArrayList<>();
+        list.add(new Intern("І1", "П1", 1000, "Універ1"));
+        list.add(new Intern("І2", "П2", 2000, "Універ2"));
+        list.add(new Manager("М1", "П3", 3000, 100, 2));
+
+        List<Employee> result = new ArrayList<>();
+        for (Employee emp : list) {
+            if (emp.getType().equalsIgnoreCase("Intern")) {
+                result.add(emp);
+            }
+        }
+
+        assertEquals(2, result.size(), "Має знайти двох стажерів");
+    }
 }

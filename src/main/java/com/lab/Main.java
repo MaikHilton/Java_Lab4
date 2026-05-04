@@ -9,20 +9,13 @@ import java.util.Scanner;
 
 /**
  * Головний клас програми (Драйвер).
- * Реалізує консольне меню, керує колекцією об'єктів і забезпечує
- * збереження та відновлення даних за допомогою TXT та JSON файлів.
+ * Керує колекцією об'єктів, підтримує читання/запис (TXT, JSON)
+ * та реалізує пошук за різними критеріями.
  */
 public class Main {
-    /** Ім'я файлу для зберігання даних у текстовому форматі */
     private static final String TXT_FILE = "input.txt";
-    /** Ім'я файлу для зберігання даних у форматі JSON */
     private static final String JSON_FILE = "input.json";
 
-    /**
-     * Точка входу в програму. Запускає інтерактивне меню керування.
-     *
-     * @param args Аргументи командного рядка
-     */
     public static void main(String[] args) {
         List<Employee> employees = new ArrayList<>();
 
@@ -30,12 +23,13 @@ public class Main {
             boolean running = true;
 
             while (running) {
-                System.out.println("\n=== КОМБІНОВАНЕ МЕНЮ (TXT + JSON) ===");
-                System.out.println("1. Завантажити та вивести з TXT");
-                System.out.println("2. Завантажити та вивести з JSON");
-                System.out.println("3. Додати нового працівника");
-                System.out.println("4. Зберегти поточний список в TXT");
-                System.out.println("5. Зберегти поточний список в JSON");
+                System.out.println("\n=== ГОЛОВНЕ МЕНЮ (Лабораторна №10) ===");
+                System.out.println("1. Пошук об’єктів");
+                System.out.println("2. Завантажити та вивести з TXT");
+                System.out.println("3. Завантажити та вивести з JSON");
+                System.out.println("4. Додати нового працівника");
+                System.out.println("5. Зберегти поточний список в TXT");
+                System.out.println("6. Зберегти поточний список в JSON");
                 System.out.println("0. Вихід (Зберегти в обидва формати)");
                 System.out.print("Ваш вибір: ");
 
@@ -43,22 +37,25 @@ public class Main {
 
                 switch (choice) {
                     case "1":
+                        searchMenu(scanner, employees);
+                        break;
+                    case "2":
                         employees.clear();
                         loadFromTxt(employees, TXT_FILE);
                         printAll(employees);
                         break;
-                    case "2":
+                    case "3":
                         employees.clear();
                         loadFromJson(employees, JSON_FILE);
                         printAll(employees);
                         break;
-                    case "3":
+                    case "4":
                         createObjectMenu(scanner, employees);
                         break;
-                    case "4":
+                    case "5":
                         saveToTxt(employees, TXT_FILE);
                         break;
-                    case "5":
+                    case "6":
                         saveToJson(employees, JSON_FILE);
                         break;
                     case "0":
@@ -74,12 +71,132 @@ public class Main {
         }
     }
 
+
+    // БЛОК ПОШУКУ (ЛАБОРАТОРНА №10)
+
     /**
-     * Відображає підменю для створення об'єктів різних підкласів.
-     *
-     * @param scanner   Об'єкт Scanner для зчитування вводу
-     * @param employees Колекція для збереження нового об'єкта
+     * Підменю для вибору критерію пошуку об'єктів.
+     * @param scanner   Сканер для вводу
+     * @param employees Поточна колекція працівників
      */
+    private static void searchMenu(Scanner scanner, List<Employee> employees) {
+        if (employees.isEmpty()) {
+            System.out.println("Колекція порожня. Завантажте дані або додайте працівників перед пошуком.");
+            return;
+        }
+
+        System.out.println("\n--- МЕНЮ ПОШУКУ ---");
+        System.out.println("1. За прізвищем");
+        System.out.println("2. За діапазоном базової ставки (зарплати)");
+        System.out.println("3. За типом посади (наприклад: Manager, Intern)");
+        System.out.println("0. Повернутися до головного меню");
+        System.out.print("Оберіть критерій: ");
+
+        String choice = scanner.nextLine().trim();
+        List<Employee> results = new ArrayList<>();
+
+        switch (choice) {
+            case "1":
+                System.out.print("Введіть прізвище для пошуку: ");
+                String targetLastName = scanner.nextLine().trim();
+                results = searchByLastName(employees, targetLastName);
+                break;
+            case "2":
+                try {
+                    System.out.print("Введіть мінімальну ставку: ");
+                    double min = scanner.nextDouble();
+                    System.out.print("Введіть максимальну ставку: ");
+                    double max = scanner.nextDouble();
+                    scanner.nextLine(); // Очищення буфера
+                    results = searchBySalaryRange(employees, min, max);
+                } catch (InputMismatchException e) {
+                    System.out.println("Помилка вводу числа!");
+                    scanner.nextLine();
+                    return;
+                }
+                break;
+            case "3":
+                System.out.print("Введіть тип (Employee, FullTimeEmployee, ContractEmployee, Manager, Intern): ");
+                String targetType = scanner.nextLine().trim();
+                results = searchByType(employees, targetType);
+                break;
+            case "0":
+                return;
+            default:
+                System.out.println("Некоректний вибір критерію.");
+                return;
+        }
+
+        printSearchResults(results);
+    }
+
+    /**
+     * Шукає працівників за точним збігом прізвища (без урахування регістру).
+     * @param list     Колекція для пошуку
+     * @param lastName Прізвище
+     * @return Список знайдених об'єктів
+     */
+    private static List<Employee> searchByLastName(List<Employee> list, String lastName) {
+        List<Employee> found = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getLastName().equalsIgnoreCase(lastName)) {
+                found.add(list.get(i));
+            }
+        }
+        return found;
+    }
+
+    /**
+     * Шукає працівників, чия базова ставка потрапляє в заданий діапазон.
+     * @param list Колекція для пошуку
+     * @param min  Мінімальна межа
+     * @param max  Максимальна межа
+     * @return Список знайдених об'єктів
+     */
+    private static List<Employee> searchBySalaryRange(List<Employee> list, double min, double max) {
+        List<Employee> found = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getSalary() >= min && list.get(i).getSalary() <= max) {
+                found.add(list.get(i));
+            }
+        }
+        return found;
+    }
+
+    /**
+     * Шукає працівників за їхнім типом (маркером класу).
+     * @param list Поточна колекція
+     * @param type Тип працівника (наприклад, "Manager")
+     * @return Список знайдених об'єктів
+     */
+    private static List<Employee> searchByType(List<Employee> list, String type) {
+        List<Employee> found = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getType().equalsIgnoreCase(type)) {
+                found.add(list.get(i));
+            }
+        }
+        return found;
+    }
+
+    /**
+     * Виводить результати пошуку на екран.
+     * @param results Список знайдених об'єктів
+     */
+    private static void printSearchResults(List<Employee> results) {
+        System.out.println("\n--- РЕЗУЛЬТАТИ ПОШУКУ ---");
+        if (results.isEmpty()) {
+            System.out.println("Жодного об'єкта не знайдено за заданими критеріями.");
+        } else {
+            for (int i = 0; i < results.size(); i++) {
+                System.out.println((i + 1) + ". " + results.get(i).toString());
+            }
+            System.out.println("Знайдено записів: " + results.size());
+        }
+    }
+
+    // БЛОК СТВОРЕННЯ ТА ЗБЕРЕЖЕННЯ (ЛАБ 9)
+
     private static void createObjectMenu(Scanner scanner, List<Employee> employees) {
         System.out.println("\n1. Штатний  2. Контрактник  3. Менеджер  4. Стажер");
         System.out.print("Вибір типу: ");
@@ -105,14 +222,14 @@ public class Main {
                     employees.add(new Manager(fName, lName, salary, bonusMgr, team));
                     break;
                 case "4":
-                    scanner.nextLine(); // Очищення буфера
+                    scanner.nextLine();
                     System.out.print("Назва ВНЗ: "); String uni = scanner.nextLine();
                     employees.add(new Intern(fName, lName, salary, uni));
                     return;
                 default:
                     System.out.println("Об'єкт не створено (невідомий тип).");
             }
-            scanner.nextLine(); // Очищення буфера
+            scanner.nextLine();
             System.out.println("Об'єкт успішно додано!");
         } catch (InputMismatchException e) {
             System.out.println("Помилка вводу!");
@@ -120,11 +237,6 @@ public class Main {
         }
     }
 
-    /**
-     * Виводить інформацію про всі об'єкти в колекції.
-     *
-     * @param list Колекція працівників для виведення
-     */
     private static void printAll(List<Employee> list) {
         System.out.println("\n--- СПИСОК ОБ'ЄКТІВ ---");
         if (list.isEmpty()) System.out.println("[Порожньо]");
@@ -133,23 +245,15 @@ public class Main {
         }
     }
 
-    /**
-     * Зчитує дані з текстового файлу (TXT) та відновлює об'єкти.
-     *
-     * @param list     Колекція для заповнення
-     * @param fileName Шлях до TXT файлу
-     */
     private static void loadFromTxt(List<Employee> list, String fileName) {
         File file = new File(fileName);
         if (!file.exists()) return;
-
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] p = line.split(";");
                 if (p.length < 4) continue;
                 String type = p[0];
-
                 if (type.equals("Manager")) list.add(new Manager(p[1], p[2], Double.parseDouble(p[3]), Double.parseDouble(p[4]), Integer.parseInt(p[5])));
                 else if (type.equals("Intern")) list.add(new Intern(p[1], p[2], Double.parseDouble(p[3]), p[4]));
                 else if (type.equals("FullTimeEmployee")) list.add(new FullTimeEmployee(p[1], p[2], Double.parseDouble(p[3]), Double.parseDouble(p[4])));
@@ -160,12 +264,6 @@ public class Main {
         } catch (Exception e) { System.out.println("Помилка читання TXT."); }
     }
 
-    /**
-     * Зберігає стан колекції у текстовий файл (TXT).
-     *
-     * @param list     Колекція для збереження
-     * @param fileName Шлях до TXT файлу
-     */
     private static void saveToTxt(List<Employee> list, String fileName) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
             for (Employee e : list) {
@@ -176,23 +274,15 @@ public class Main {
         } catch (IOException e) { System.out.println("Помилка запису TXT."); }
     }
 
-    /**
-     * Зчитує дані з файлу JSON та відновлює об'єкти, використовуючи поле 'type' як маркер.
-     *
-     * @param list     Колекція для заповнення
-     * @param fileName Шлях до JSON файлу
-     */
     private static void loadFromJson(List<Employee> list, String fileName) {
         File file = new File(fileName);
         if (!file.exists()) return;
-
         try (Reader reader = new FileReader(file)) {
             JsonArray array = JsonParser.parseReader(reader).getAsJsonArray();
             Gson gson = new Gson();
             for (JsonElement el : array) {
                 JsonObject obj = el.getAsJsonObject();
                 String type = obj.get("type").getAsString();
-
                 if (type.equals("Manager")) list.add(gson.fromJson(obj, Manager.class));
                 else if (type.equals("Intern")) list.add(gson.fromJson(obj, Intern.class));
                 else if (type.equals("FullTimeEmployee")) list.add(gson.fromJson(obj, FullTimeEmployee.class));
@@ -203,12 +293,6 @@ public class Main {
         } catch (Exception e) { System.out.println("Помилка читання JSON."); }
     }
 
-    /**
-     * Зберігає стан колекції у форматі JSON з використанням бібліотеки Gson.
-     *
-     * @param list     Колекція для збереження
-     * @param fileName Шлях до JSON файлу
-     */
     private static void saveToJson(List<Employee> list, String fileName) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         try (Writer writer = new FileWriter(fileName)) {
