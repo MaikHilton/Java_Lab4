@@ -1,19 +1,19 @@
 package com.lab;
 
 /**
- * Клас, що представляє стажера.
- * Успадковується від {@link Employee} та містить інформацію про навчальний заклад.
+ * Клас, що представляє стажера (інтерна).
+ * Містить інформацію про навчальний заклад стажера.
  */
 public class Intern extends Employee {
+    /** Назва університету, де навчається стажер */
     private String universityName;
 
     /**
-     * Конструктор для стажера.
-     *
+     * Конструктор стажера.
      * @param firstName      Ім'я
      * @param lastName       Прізвище
-     * @param salary         Стипендія або ставка стажера
-     * @param universityName Назва університету, де навчається стажер
+     * @param salary         Стипендія
+     * @param universityName Назва ВНЗ
      */
     public Intern(String firstName, String lastName, double salary, String universityName) {
         super(firstName, lastName, salary);
@@ -21,14 +21,24 @@ public class Intern extends Employee {
         this.universityName = universityName;
     }
 
+    /**
+     * Повертає інформацію про стажера, включаючи назву його університету.
+     * @return рядок з даними стажера
+     */
     @Override
     public String toString() {
-        return String.format("[Стажер] %s %s, Стипендія: %.2f, ВНЗ: %s",
-                getFirstName(), getLastName(), getSalary(), universityName);
+        return String.format("[Стажер] %s %s, Стипендія: %.2f, ВНЗ: %s (Кількість: %d)",
+                getFirstName(), getLastName(), getSalary(), universityName, getQuantity());
     }
 
+    /**
+     * Формує рядок для запису в TXT файл.
+     * Формат: Тип;Ім'я;Прізвище;Ставка;Університет;Кількість
+     * @return рядок даних
+     */
     @Override
     public String toFileString() {
-        return "Intern;" + getFirstName() + ";" + getLastName() + ";" + getSalary() + ";" + universityName;
+        return "Intern;" + getFirstName() + ";" + getLastName() + ";" +
+                getSalary() + ";" + universityName + ";" + getQuantity();
     }
 }
