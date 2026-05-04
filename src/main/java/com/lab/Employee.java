@@ -1,22 +1,23 @@
 package com.lab;
 
 /**
- * Базовий клас, що представляє загальну інформацію про працівника.
- * Є коренем ієрархії для всіх інших типів працівників.
+ * Базовий клас працівника.
+ * У Лабораторній №11 додано поле {@code quantity} для реалізації агрегації
+ * та обліку кількості однакових об'єктів.
  */
 public class Employee {
-    /** Маркер типу класу для коректної десеріалізації з JSON */
     private String type = "Employee";
     private String firstName;
     private String lastName;
     private double salary;
+    /** Кількість працівників даного типу з ідентичними даними */
+    private int quantity = 1;
 
     /**
-     * Конструктор для ініціалізації базових атрибутів працівника.
-     *
-     * @param firstName Ім'я працівника
-     * @param lastName  Прізвище працівника
-     * @param salary    Базова заробітна плата (ставка)
+     * Конструктор базового класу.
+     * @param firstName Ім'я
+     * @param lastName Прізвище
+     * @param salary Базова ставка
      */
     public Employee(String firstName, String lastName, double salary) {
         this.firstName = firstName;
@@ -25,33 +26,30 @@ public class Employee {
     }
 
     public String getType() { return type; }
-
-    /**
-     * Встановлює тип об'єкта для JSON. Використовується в класах-нащадках.
-     * @param type Назва класу (маркер)
-     */
     protected void setType(String type) { this.type = type; }
-
     public String getFirstName() { return firstName; }
     public String getLastName() { return lastName; }
     public double getSalary() { return salary; }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 
     /**
-     * Формує рядкове представлення об'єкта для виведення в консоль.
-     *
-     * @return Рядок із базовою інформацією про працівника
+     * Збільшує поточну кількість об'єктів на задане значення.
+     * @param q кількість для додавання
      */
+    public void addQuantity(int q) { this.quantity += q; }
+
     @Override
     public String toString() {
-        return String.format("Працівник: %s %s, Ставка: %.2f", firstName, lastName, salary);
+        return String.format("Працівник: %s %s, Ставка: %.2f (Кількість: %d)",
+                firstName, lastName, salary, quantity);
     }
 
     /**
-     * Формує рядок даних для збереження об'єкта у текстовий файл (TXT).
-     *
-     * @return Рядок у форматі: ТипКласу;Ім'я;Прізвище;Зарплата
+     * Формує рядок для збереження у TXT файл.
+     * Додано поле quantity в кінець рядка.
      */
     public String toFileString() {
-        return "Employee;" + firstName + ";" + lastName + ";" + salary;
+        return "Employee;" + firstName + ";" + lastName + ";" + salary + ";" + quantity;
     }
 }
