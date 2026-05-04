@@ -41,4 +41,8 @@ public class ContractEmployee extends Employee {
         return "ContractEmployee;" + getFirstName() + ";" + getLastName() + ";" +
                 getSalary() + ";" + contractMonths + ";" + getQuantity();
     }
+
+    public int getContractMonths() {
+        return contractMonths;
+    }
 }

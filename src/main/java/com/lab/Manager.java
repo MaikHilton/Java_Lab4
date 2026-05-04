@@ -42,4 +42,8 @@ public class Manager extends FullTimeEmployee {
         return "Manager;" + getFirstName() + ";" + getLastName() + ";" +
                 getSalary() + ";" + getBonus() + ";" + teamSize + ";" + getQuantity();
     }
+
+    public int getTeamSize() {
+        return teamSize;
+    }
 }

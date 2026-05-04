@@ -41,4 +41,8 @@ public class Intern extends Employee {
         return "Intern;" + getFirstName() + ";" + getLastName() + ";" +
                 getSalary() + ";" + universityName + ";" + getQuantity();
     }
+
+    public String getUniversityName() {
+        return universityName;
+    }
 }
