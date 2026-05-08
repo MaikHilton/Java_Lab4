@@ -5,67 +5,49 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Тестовий клас для перевірки логіки сортування Comparator (Лаб 14).
+ * Тести для Лабораторної №15 (Lambda expressions).
  */
 class EmployeeTest {
 
-    private List<Employee> testList;
+    private List<Employee> list;
 
     @BeforeEach
     void setUp() {
-        testList = new ArrayList<>();
-        testList.add(new Intern("Богдан", "Яценко", 5000, "СумДУ")); // Q: 1
-        testList.add(new Manager("Андрій", "Авраменко", 25000, 5000, 5)); // Q: 1
-        testList.add(new FullTimeEmployee("Віктор", "Коваль", 15000, 2000)); // Q: 1
+        list = new ArrayList<>();
+        list.add(new Intern("Богдан", "Яценко", 5000, "СумДУ"));
+        list.add(new Manager("Андрій", "Авраменко", 25000, 5000, 5));
+        list.add(new FullTimeEmployee("Віктор", "Коваль", 15000, 2000));
 
-        // Змінимо кількість для тестування сортування за кількістю
-        testList.get(0).setQuantity(10); // Яценко - 10
-        testList.get(1).setQuantity(5);  // Авраменко - 5
-        testList.get(2).setQuantity(1);  // Коваль - 1
+        list.get(0).setQuantity(10);
+        list.get(1).setQuantity(5);
+        list.get(2).setQuantity(1);
     }
 
     @Test
-    @DisplayName("Сортування за зарплатою (анонімний клас)")
-    void shouldSortBySalaryAscending() {
-        Collections.sort(testList, new Comparator<Employee>() {
-            @Override
-            public int compare(Employee e1, Employee e2) {
-                return Double.compare(e1.getSalary(), e2.getSalary());
-            }
-        });
+    @DisplayName("Сортування за зарплатою через Lambda")
+    void shouldSortBySalaryUsingLambda() {
+        // Використання лямбда-виразу в тесті
+        list.sort((e1, e2) -> Double.compare(e1.getSalary(), e2.getSalary()));
 
-        assertAll("Перевірка зростання зарплати",
-                () -> assertEquals(5000, testList.get(0).getSalary()),
-                () -> assertEquals(15000, testList.get(1).getSalary()),
-                () -> assertEquals(25000, testList.get(2).getSalary())
-        );
+        assertEquals(5000, list.get(0).getSalary());
+        assertEquals(25000, list.get(2).getSalary());
     }
 
     @Test
-    @DisplayName("Сортування за кількістю спадання (анонімний клас)")
-    void shouldSortByQuantityDescending() {
-        Collections.sort(testList, new Comparator<Employee>() {
-            @Override
-            public int compare(Employee e1, Employee e2) {
-                return Integer.compare(e2.getQuantity(), e1.getQuantity());
-            }
-        });
+    @DisplayName("Сортування за прізвищем через Lambda")
+    void shouldSortByLastNameUsingLambda() {
+        list.sort((e1, e2) -> e1.getLastName().compareToIgnoreCase(e2.getLastName()));
 
-        assertEquals(10, testList.get(0).getQuantity(), "Першим має бути об'єкт з кількістю 10");
-        assertEquals(1, testList.get(2).getQuantity(), "Останнім має бути об'єкт з кількістю 1");
+        assertEquals("Авраменко", list.get(0).getLastName());
+        assertEquals("Яценко", list.get(2).getLastName());
     }
 
     @Test
-    @DisplayName("Сортування за прізвищем (анонімний клас)")
-    void shouldSortByLastNameAnonymous() {
-        Collections.sort(testList, new Comparator<Employee>() {
-            @Override
-            public int compare(Employee e1, Employee e2) {
-                return e1.getLastName().compareToIgnoreCase(e2.getLastName());
-            }
-        });
+    @DisplayName("Сортування за кількістю через Lambda (спадання)")
+    void shouldSortByQuantityDescendingUsingLambda() {
+        list.sort((e1, e2) -> Integer.compare(e2.getQuantity(), e1.getQuantity()));
 
-        assertEquals("Авраменко", testList.get(0).getLastName());
-        assertEquals("Яценко", testList.get(2).getLastName());
+        assertEquals(10, list.get(0).getQuantity());
+        assertEquals(1, list.get(2).getQuantity());
     }
 }
