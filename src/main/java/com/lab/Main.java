@@ -2,26 +2,21 @@ package com.lab;
 
 import com.google.gson.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.InputMismatchException;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Головний клас програми (Драйвер).
- * У Лабораторній №13 додано можливість сортування працівників (Comparable).
+ * У Лабораторній №14 додано підменю сортування з використанням анонімних класів Comparator.
  * * @author Яценко Іван
+ * @version 14.0
  */
 public class Main {
     private static final String TXT_FILE = "input.txt";
     private static final String JSON_FILE = "input.json";
-
-    /** Головний об'єкт компанії, що містить колекцію працівників */
     private static Company company = new Company("IT СумДУ");
 
     /**
-     * Точка входу в програму. Забезпечує роботу головного меню.
+     * Точка входу в програму.
      * @param args аргументи командного рядка
      */
     public static void main(String[] args) {
@@ -30,11 +25,11 @@ public class Main {
             company = loadFromTxt(TXT_FILE);
 
             while (running) {
-                System.out.println("\n=== КОМПАНІЯ: " + company.getName() + " (Лабораторна №13) ===");
+                System.out.println("\n=== КОМПАНІЯ: " + company.getName() + " (Лабораторна №14) ===");
                 System.out.println("1. Пошук об’єктів");
                 System.out.println("2. Завантажити та вивести з TXT");
                 System.out.println("3. Завантажити та вивести з JSON");
-                System.out.println("4. Вивести відсортовану інформацію про всіх працівників");
+                System.out.println("4. Сортувати та вивести працівників (Підменю)");
                 System.out.println("5. Додати нового працівника");
                 System.out.println("6. Зберегти поточний стан в TXT");
                 System.out.println("7. Зберегти поточний стан в JSON");
@@ -54,7 +49,7 @@ public class Main {
                         printAll(company.getEmployees());
                         break;
                     case "4":
-                        showSortedEmployees();
+                        showSortedEmployees(scanner);
                         break;
                     case "5": createObjectMenu(scanner); break;
                     case "6": saveToTxt(company, TXT_FILE); break;
@@ -62,7 +57,7 @@ public class Main {
                     case "0":
                         saveToTxt(company, TXT_FILE);
                         saveToJson(company, JSON_FILE);
-                        System.out.println("Завершення програми.");
+                        System.out.println("Роботу завершено.");
                         running = false;
                         break;
                     default: System.out.println("Некоректний вибір.");
@@ -72,30 +67,75 @@ public class Main {
     }
 
     /**
-     * Сортує список працівників за допомогою інтерфейсу Comparable
-     * та виводить його у консоль. Оригінальний список залишається без змін.
+     * Виводить підменю вибору критерію сортування та виконує сортування
+     * за допомогою анонімних внутрішніх класів Comparator.
+     * * @param scanner об'єкт для зчитування вибору користувача
      */
-    private static void showSortedEmployees() {
+    private static void showSortedEmployees(Scanner scanner) {
         List<Employee> list = company.getEmployees();
         if (list.isEmpty()) {
-            System.out.println("Список порожній.");
+            System.out.println("Список працівників порожній.");
             return;
         }
-        // Створюємо копію для безпечного сортування
-        List<Employee> sortedList = new ArrayList<>(list);
-        Collections.sort(sortedList);
 
-        System.out.println("\n--- ВІДСОРТОВАНИЙ СПИСОК (за прізвищем) ---");
+        System.out.println("\n--- ОБЕРІТЬ КРИТЕРІЙ СОРТУВАННЯ ---");
+        System.out.println("1. За прізвищем (Алфавіт)");
+        System.out.println("2. За зарплатою (Зростання)");
+        System.out.println("3. За кількістю (Спадання)");
+        System.out.println("0. Повернутися в головне меню");
+        System.out.print("Вибір: ");
+
+        String sortChoice = scanner.nextLine().trim();
+        List<Employee> sortedList = new ArrayList<>(list);
+        Comparator<Employee> comparator = null;
+
+        switch (sortChoice) {
+            case "1":
+                // Критерій 1: Анонімний клас для сортування за прізвищем
+                comparator = new Comparator<Employee>() {
+                    @Override
+                    public int compare(Employee e1, Employee e2) {
+                        return e1.getLastName().compareToIgnoreCase(e2.getLastName());
+                    }
+                };
+                break;
+            case "2":
+                // Критерій 2: Анонімний клас для сортування за ставкою (salary)
+                comparator = new Comparator<Employee>() {
+                    @Override
+                    public int compare(Employee e1, Employee e2) {
+                        return Double.compare(e1.getSalary(), e2.getSalary());
+                    }
+                };
+                break;
+            case "3":
+                // Критерій 3: Анонімний клас для сортування за кількістю (quantity)
+                comparator = new Comparator<Employee>() {
+                    @Override
+                    public int compare(Employee e1, Employee e2) {
+                        // Сортування за спаданням: e2 порівнюємо з e1
+                        return Integer.compare(e2.getQuantity(), e1.getQuantity());
+                    }
+                };
+                break;
+            case "0": return;
+            default:
+                System.out.println("Некоректний критерій.");
+                return;
+        }
+
+        Collections.sort(sortedList, comparator);
+        System.out.println("\n--- РЕЗУЛЬТАТ СОРТУВАННЯ ---");
         printAll(sortedList);
     }
 
     /**
-     * Меню створення нового об'єкта та додавання його до компанії.
-     * @param scanner сканер для зчитування вводу
+     * Створює нового працівника та додає до колекції компанії.
+     * @param scanner сканер для вводу даних
      */
     private static void createObjectMenu(Scanner scanner) {
         System.out.println("\n1. Штатний  2. Контрактник  3. Менеджер  4. Стажер");
-        System.out.print("Оберіть тип: ");
+        System.out.print("Вибір: ");
         String typeChoice = scanner.nextLine().trim();
 
         try {
@@ -103,7 +143,7 @@ public class Main {
             System.out.print("Прізвище: "); String lName = scanner.nextLine().trim();
 
             if (fName.isEmpty() || lName.isEmpty()) {
-                System.out.println("Помилка: Поля не можуть бути порожніми.");
+                System.out.println("Помилка: Ім'я та прізвище обов'язкові!");
                 return;
             }
 
@@ -111,7 +151,6 @@ public class Main {
             System.out.print("Кількість: "); int qty = scanner.nextInt();
 
             Employee newEmp = null;
-
             switch (typeChoice) {
                 case "1":
                     System.out.print("Бонус: "); double b = scanner.nextDouble();
@@ -135,20 +174,20 @@ public class Main {
             }
             scanner.nextLine();
             company.addNewEmployee(newEmp, qty);
-            System.out.println("Працівника успішно додано!");
+            System.out.println("Працівника додано!");
         } catch (InputMismatchException e) {
-            System.out.println("Помилка вводу!"); scanner.nextLine();
+            System.out.println("Помилка типу даних!"); scanner.nextLine();
         }
     }
 
     /**
-     * Підменю для пошуку працівників за різними критеріями.
-     * @param scanner сканер для зчитування вводу
+     * Підменю для пошуку працівників.
+     * @param scanner сканер вводу
      */
     private static void searchMenu(Scanner scanner) {
         if (company.getEmployees().isEmpty()) return;
-        System.out.println("\n--- ПОШУК ---");
-        System.out.println("1. Прізвище 2. Зарплата 3. Тип");
+        System.out.println("\n--- ПОШУК ОБ'ЄКТІВ ---");
+        System.out.println("1. За прізвищем 2. За зарплатою 3. За типом");
         String c = scanner.nextLine().trim();
         List<Employee> res = null;
         if (c.equals("1")) {
@@ -165,12 +204,12 @@ public class Main {
     }
 
     /**
-     * Виводить список працівників у консоль.
+     * Друкує список працівників.
      * @param list список для виводу
      */
     private static void printAll(List<Employee> list) {
         if (list == null || list.isEmpty()) {
-            System.out.println("[Порожньо]");
+            System.out.println("[Список порожній]");
             return;
         }
         for (int i = 0; i < list.size(); i++) {
@@ -179,9 +218,7 @@ public class Main {
     }
 
     /**
-     * Завантажує дані з TXT файлу.
-     * @param fileName шлях до файлу
-     * @return об'єкт Company
+     * Завантаження з TXT.
      */
     private static Company loadFromTxt(String fileName) {
         Company newC = new Company("IT СумДУ");
@@ -193,7 +230,6 @@ public class Main {
                 String[] p = line.split(";");
                 if (p.length < 2) continue;
                 if (p[0].equals("Company")) { newC.setName(p[1]); continue; }
-
                 Employee emp = null;
                 int q = 1;
                 if (p[0].equals("Manager")) {
@@ -211,14 +247,12 @@ public class Main {
                 }
                 if (emp != null) newC.addNewEmployee(emp, q);
             }
-        } catch (Exception e) { System.out.println("TXT Error"); }
+        } catch (Exception e) {}
         return newC;
     }
 
     /**
-     * Зберігає дані у TXT файл.
-     * @param c компанія
-     * @param f шлях до файлу
+     * Збереження в TXT.
      */
     private static void saveToTxt(Company c, String f) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(f))) {
@@ -228,9 +262,7 @@ public class Main {
     }
 
     /**
-     * Завантажує дані з JSON файлу.
-     * @param f шлях до файлу
-     * @return об'єкт Company
+     * Завантаження з JSON.
      */
     private static Company loadFromJson(String f) {
         Company newC = new Company("IT СумДУ");
@@ -254,9 +286,7 @@ public class Main {
     }
 
     /**
-     * Зберігає дані у JSON файл.
-     * @param c компанія
-     * @param f шлях до файлу
+     * Збереження в JSON.
      */
     private static void saveToJson(Company c, String f) {
         Gson g = new GsonBuilder().setPrettyPrinting().create();
