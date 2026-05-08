@@ -2,58 +2,42 @@ package com.lab;
 
 import com.google.gson.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
 /**
  * Головний клас програми (Драйвер).
- * У Лабораторній №12 додано інтеграцію з JDBC для збереження об'єктів у БД .
- * Програма зчитує шлях до db.properties через аргументи командного рядка .
- *
- * @author Яценко Іван
- * @version 12.0
+ * У Лабораторній №13 додано можливість сортування працівників (Comparable).
+ * * @author Яценко Іван
  */
 public class Main {
-    /** Шлях до файлу з даними у текстовому форматі  */
     private static final String TXT_FILE = "input.txt";
-    /** Шлях до файлу з даними у форматі JSON  */
     private static final String JSON_FILE = "input.json";
 
-    /** Контейнер для агрегації працівників (з Лаб 11)  */
+    /** Головний об'єкт компанії, що містить колекцію працівників */
     private static Company company = new Company("IT СумДУ");
 
-    /** Менеджер для роботи з базою даних (з Лаб 12)  */
-    private static DatabaseManager dbManager;
-
     /**
-     * Точка входу в програму. Забезпечує роботу головного меню та ініціалізацію БД.
-     *
-     * @param args аргументи командного рядка. Перший аргумент — шлях до db.properties .
+     * Точка входу в програму. Забезпечує роботу головного меню.
+     * @param args аргументи командного рядка
      */
     public static void main(String[] args) {
-        // Перевірка та ініціалізація БД через аргументи командного рядка 
-        if (args.length > 0) {
-            dbManager = new DatabaseManager(args[0]);
-        } else {
-            System.out.println("!!! Попередження: Шлях до конфігурації БД не вказано в args.");
-            System.out.println("Використовуйте: java Main db.properties");
-        }
-
         try (Scanner scanner = new Scanner(System.in, "UTF-8")) {
             boolean running = true;
-
-            // Початкове завантаження даних (з файлу) 
             company = loadFromTxt(TXT_FILE);
 
             while (running) {
-                System.out.println("\n=== КОМПАНІЯ: " + company.getName() + " (Лабораторна №12 - JDBC) ===");
+                System.out.println("\n=== КОМПАНІЯ: " + company.getName() + " (Лабораторна №13) ===");
                 System.out.println("1. Пошук об’єктів");
                 System.out.println("2. Завантажити та вивести з TXT");
                 System.out.println("3. Завантажити та вивести з JSON");
-                System.out.println("4. Додати нового працівника (Збереження в БД)");
-                System.out.println("5. Зберегти поточний стан в TXT");
-                System.out.println("6. Зберегти поточний стан в JSON");
+                System.out.println("4. Вивести відсортовану інформацію про всіх працівників");
+                System.out.println("5. Додати нового працівника");
+                System.out.println("6. Зберегти поточний стан в TXT");
+                System.out.println("7. Зберегти поточний стан в JSON");
                 System.out.println("0. Вихід");
                 System.out.print("Ваш вибір: ");
 
@@ -69,9 +53,12 @@ public class Main {
                         company = loadFromJson(JSON_FILE);
                         printAll(company.getEmployees());
                         break;
-                    case "4": createObjectMenu(scanner); break;
-                    case "5": saveToTxt(company, TXT_FILE); break;
-                    case "6": saveToJson(company, JSON_FILE); break;
+                    case "4":
+                        showSortedEmployees();
+                        break;
+                    case "5": createObjectMenu(scanner); break;
+                    case "6": saveToTxt(company, TXT_FILE); break;
+                    case "7": saveToJson(company, JSON_FILE); break;
                     case "0":
                         saveToTxt(company, TXT_FILE);
                         saveToJson(company, JSON_FILE);
@@ -85,10 +72,26 @@ public class Main {
     }
 
     /**
-     * Меню створення нового об'єкта.
-     * Зберігає новий об'єкт одночасно в локальну колекцію та в базу даних .
-     *
-     * @param scanner об'єкт Scanner для зчитування даних користувача
+     * Сортує список працівників за допомогою інтерфейсу Comparable
+     * та виводить його у консоль. Оригінальний список залишається без змін.
+     */
+    private static void showSortedEmployees() {
+        List<Employee> list = company.getEmployees();
+        if (list.isEmpty()) {
+            System.out.println("Список порожній.");
+            return;
+        }
+        // Створюємо копію для безпечного сортування
+        List<Employee> sortedList = new ArrayList<>(list);
+        Collections.sort(sortedList);
+
+        System.out.println("\n--- ВІДСОРТОВАНИЙ СПИСОК (за прізвищем) ---");
+        printAll(sortedList);
+    }
+
+    /**
+     * Меню створення нового об'єкта та додавання його до компанії.
+     * @param scanner сканер для зчитування вводу
      */
     private static void createObjectMenu(Scanner scanner) {
         System.out.println("\n1. Штатний  2. Контрактник  3. Менеджер  4. Стажер");
@@ -96,20 +99,16 @@ public class Main {
         String typeChoice = scanner.nextLine().trim();
 
         try {
-            System.out.print("Ім'я: ");
-            String fName = scanner.nextLine().trim();
-            System.out.print("Прізвище: ");
-            String lName = scanner.nextLine().trim();
+            System.out.print("Ім'я: "); String fName = scanner.nextLine().trim();
+            System.out.print("Прізвище: "); String lName = scanner.nextLine().trim();
 
             if (fName.isEmpty() || lName.isEmpty()) {
                 System.out.println("Помилка: Поля не можуть бути порожніми.");
                 return;
             }
 
-            System.out.print("Ставка: ");
-            double salary = scanner.nextDouble();
-            System.out.print("Кількість: ");
-            int qty = scanner.nextInt();
+            System.out.print("Ставка: "); double salary = scanner.nextDouble();
+            System.out.print("Кількість: "); int qty = scanner.nextInt();
 
             Employee newEmp = null;
 
@@ -119,51 +118,36 @@ public class Main {
                     newEmp = new FullTimeEmployee(fName, lName, salary, b);
                     break;
                 case "2":
-                    System.out.print("Місяців контракту: "); int m = scanner.nextInt();
+                    System.out.print("Місяців: "); int m = scanner.nextInt();
                     newEmp = new ContractEmployee(fName, lName, salary, m);
                     break;
                 case "3":
                     System.out.print("Бонус: "); double bM = scanner.nextDouble();
-                    System.out.print("Розмір команди: "); int t = scanner.nextInt();
+                    System.out.print("Команда: "); int t = scanner.nextInt();
                     newEmp = new Manager(fName, lName, salary, bM, t);
                     break;
                 case "4":
                     scanner.nextLine();
-                    System.out.print("Назва ВНЗ: "); String u = scanner.nextLine();
+                    System.out.print("ВНЗ: "); String u = scanner.nextLine();
                     newEmp = new Intern(fName, lName, salary, u);
                     break;
-                default:
-                    System.out.println("Тип не знайдено.");
-                    return;
+                default: System.out.println("Тип не знайдено."); return;
             }
             scanner.nextLine();
-
-            // 1. Додаємо в локальну колекцію (Лаб 11) 
             company.addNewEmployee(newEmp, qty);
-            System.out.println("Об'єкт додано в локальну колекцію.");
-
-            // 2. Додаємо в базу даних (Лаб 12) 
-            if (dbManager != null) {
-                dbManager.saveEmployee(newEmp);
-            }
-
+            System.out.println("Працівника успішно додано!");
         } catch (InputMismatchException e) {
-            System.out.println("Помилка вводу числа!");
-            scanner.nextLine();
+            System.out.println("Помилка вводу!"); scanner.nextLine();
         }
     }
 
     /**
-     * Реалізує підменю пошуку за різними критеріями.
-     *
-     * @param scanner об'єкт Scanner для зчитування параметрів пошуку
+     * Підменю для пошуку працівників за різними критеріями.
+     * @param scanner сканер для зчитування вводу
      */
     private static void searchMenu(Scanner scanner) {
-        if (company.getEmployees().isEmpty()) {
-            System.out.println("Колекція порожня.");
-            return;
-        }
-        System.out.println("\n--- ПОШУК (Лаб 10-11) ---");
+        if (company.getEmployees().isEmpty()) return;
+        System.out.println("\n--- ПОШУК ---");
         System.out.println("1. Прізвище 2. Зарплата 3. Тип");
         String c = scanner.nextLine().trim();
         List<Employee> res = null;
@@ -182,8 +166,7 @@ public class Main {
 
     /**
      * Виводить список працівників у консоль.
-     *
-     * @param list список працівників для виводу
+     * @param list список для виводу
      */
     private static void printAll(List<Employee> list) {
         if (list == null || list.isEmpty()) {
@@ -196,10 +179,9 @@ public class Main {
     }
 
     /**
-     * Завантажує дані компанії та працівників з TXT файлу .
-     *
-     * @param fileName шлях до TXT файлу
-     * @return об'єкт Company з завантаженими даними
+     * Завантажує дані з TXT файлу.
+     * @param fileName шлях до файлу
+     * @return об'єкт Company
      */
     private static Company loadFromTxt(String fileName) {
         Company newC = new Company("IT СумДУ");
@@ -226,9 +208,6 @@ public class Main {
                 } else if (p[0].equals("ContractEmployee")) {
                     emp = new ContractEmployee(p[1], p[2], Double.parseDouble(p[3]), Integer.parseInt(p[4]));
                     q = Integer.parseInt(p[5]);
-                } else if (p[0].equals("Employee")) {
-                    emp = new Employee(p[1], p[2], Double.parseDouble(p[3]));
-                    q = Integer.parseInt(p[4]);
                 }
                 if (emp != null) newC.addNewEmployee(emp, q);
             }
@@ -237,24 +216,21 @@ public class Main {
     }
 
     /**
-     * Зберігає дані компанії у TXT файл .
-     *
-     * @param c об'єкт компанії для збереження
+     * Зберігає дані у TXT файл.
+     * @param c компанія
      * @param f шлях до файлу
      */
     private static void saveToTxt(Company c, String f) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(f))) {
             bw.write("Company;" + c.getName()); bw.newLine();
             for (Employee e : c.getEmployees()) { bw.write(e.toFileString()); bw.newLine(); }
-            System.out.println("Збережено в TXT.");
-        } catch (IOException e) { System.out.println("Save TXT Error"); }
+        } catch (IOException e) {}
     }
 
     /**
-     * Завантажує дані компанії з JSON файлу за допомогою бібліотеки Gson .
-     *
-     * @param f шлях до JSON файлу
-     * @return об'єкт Company з завантаженими даними
+     * Завантажує дані з JSON файлу.
+     * @param f шлях до файлу
+     * @return об'єкт Company
      */
     private static Company loadFromJson(String f) {
         Company newC = new Company("IT СумДУ");
@@ -271,22 +247,20 @@ public class Main {
                 else if (t.equals("Intern")) emp = g.fromJson(o, Intern.class);
                 else if (t.equals("FullTimeEmployee")) emp = g.fromJson(o, FullTimeEmployee.class);
                 else if (t.equals("ContractEmployee")) emp = g.fromJson(o, ContractEmployee.class);
-                else emp = g.fromJson(o, Employee.class);
                 if (emp != null) newC.getEmployees().add(emp);
             }
-        } catch (Exception e) { System.out.println("JSON Error"); }
+        } catch (Exception e) {}
         return newC;
     }
 
     /**
-     * Зберігає дані компанії у JSON файл .
-     *
-     * @param c об'єкт компанії для збереження
+     * Зберігає дані у JSON файл.
+     * @param c компанія
      * @param f шлях до файлу
      */
     private static void saveToJson(Company c, String f) {
         Gson g = new GsonBuilder().setPrettyPrinting().create();
-        try (Writer w = new FileWriter(f)) { g.toJson(c, w); System.out.println("Збережено в JSON."); }
-        catch (IOException e) { System.out.println("Save JSON Error"); }
+        try (Writer w = new FileWriter(f)) { g.toJson(c, w); }
+        catch (IOException e) {}
     }
 }
