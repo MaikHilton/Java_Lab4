@@ -1,57 +1,71 @@
 package com.lab;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import org.junit.jupiter.api.*;
+import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Тестовий клас для перевірки логіки сортування Comparable (Лаб 13)
- * та агрегації (Лаб 11).
+ * Тестовий клас для перевірки логіки сортування Comparator (Лаб 14).
  */
 class EmployeeTest {
 
-    /**
-     * Перевіряє коректність реалізації інтерфейсу Comparable
-     * в абстрактному класі Employee. Сортування має відбуватися за прізвищем.
-     */
+    private List<Employee> testList;
+
+    @BeforeEach
+    void setUp() {
+        testList = new ArrayList<>();
+        testList.add(new Intern("Богдан", "Яценко", 5000, "СумДУ")); // Q: 1
+        testList.add(new Manager("Андрій", "Авраменко", 25000, 5000, 5)); // Q: 1
+        testList.add(new FullTimeEmployee("Віктор", "Коваль", 15000, 2000)); // Q: 1
+
+        // Змінимо кількість для тестування сортування за кількістю
+        testList.get(0).setQuantity(10); // Яценко - 10
+        testList.get(1).setQuantity(5);  // Авраменко - 5
+        testList.get(2).setQuantity(1);  // Коваль - 1
+    }
+
     @Test
-    @DisplayName("Перевірка сортування Comparable за прізвищем")
-    void shouldSortEmployeesByLastName() {
-        List<Employee> list = new ArrayList<>();
-        list.add(new Intern("Богдан", "Яценко", 5000, "СумДУ"));
-        list.add(new Manager("Андрій", "Авраменко", 25000, 5000, 5));
-        list.add(new FullTimeEmployee("Віктор", "Коваль", 15000, 2000));
+    @DisplayName("Сортування за зарплатою (анонімний клас)")
+    void shouldSortBySalaryAscending() {
+        Collections.sort(testList, new Comparator<Employee>() {
+            @Override
+            public int compare(Employee e1, Employee e2) {
+                return Double.compare(e1.getSalary(), e2.getSalary());
+            }
+        });
 
-        Collections.sort(list);
-
-        assertAll("Порядок сортування",
-                () -> assertEquals("Авраменко", list.get(0).getLastName(), "Першим має бути Авраменко"),
-                () -> assertEquals("Коваль", list.get(1).getLastName(), "Другим має бути Коваль"),
-                () -> assertEquals("Яценко", list.get(2).getLastName(), "Останнім має бути Яценко")
+        assertAll("Перевірка зростання зарплати",
+                () -> assertEquals(5000, testList.get(0).getSalary()),
+                () -> assertEquals(15000, testList.get(1).getSalary()),
+                () -> assertEquals(25000, testList.get(2).getSalary())
         );
     }
 
-    /**
-     * Перевіряє агрегацію компанії та збільшення кількості замість дублювання.
-     */
     @Test
-    @DisplayName("Перевірка Company: агрегація та додавання з урахуванням кількості")
-    void shouldAddEmployeeAndIncreaseQuantityIfDuplicate() {
-        Company comp = new Company("Test IT");
-        Employee e1 = new Intern("Олександр", "Шевченко", 5000, "СумДУ");
-        Employee e2 = new Intern("Олександр", "Шевченко", 5000, "СумДУ");
+    @DisplayName("Сортування за кількістю спадання (анонімний клас)")
+    void shouldSortByQuantityDescending() {
+        Collections.sort(testList, new Comparator<Employee>() {
+            @Override
+            public int compare(Employee e1, Employee e2) {
+                return Integer.compare(e2.getQuantity(), e1.getQuantity());
+            }
+        });
 
-        comp.addNewEmployee(e1, 1);
-        comp.addNewEmployee(e2, 5);
+        assertEquals(10, testList.get(0).getQuantity(), "Першим має бути об'єкт з кількістю 10");
+        assertEquals(1, testList.get(2).getQuantity(), "Останнім має бути об'єкт з кількістю 1");
+    }
 
-        assertAll("Перевірка логіки агрегації",
-                () -> assertEquals(1, comp.getEmployees().size(), "Розмір списку не має змінюватись при дублікатах"),
-                () -> assertEquals(6, comp.getEmployees().get(0).getQuantity(), "Кількість має сумуватися (1+5)")
-        );
+    @Test
+    @DisplayName("Сортування за прізвищем (анонімний клас)")
+    void shouldSortByLastNameAnonymous() {
+        Collections.sort(testList, new Comparator<Employee>() {
+            @Override
+            public int compare(Employee e1, Employee e2) {
+                return e1.getLastName().compareToIgnoreCase(e2.getLastName());
+            }
+        });
+
+        assertEquals("Авраменко", testList.get(0).getLastName());
+        assertEquals("Яценко", testList.get(2).getLastName());
     }
 }
