@@ -6,9 +6,9 @@ import java.util.*;
 
 /**
  * Головний клас програми (Драйвер).
- * У Лабораторній №14 додано підменю сортування з використанням анонімних класів Comparator.
+ * У Лабораторній №15 анонімні класи Comparator замінено на лямбда-вирази.
  * * @author Яценко Іван
- * @version 14.0
+ * @version 15.0
  */
 public class Main {
     private static final String TXT_FILE = "input.txt";
@@ -25,11 +25,11 @@ public class Main {
             company = loadFromTxt(TXT_FILE);
 
             while (running) {
-                System.out.println("\n=== КОМПАНІЯ: " + company.getName() + " (Лабораторна №14) ===");
+                System.out.println("\n=== КОМПАНІЯ: " + company.getName() + " (Лабораторна №15 - Lambda) ===");
                 System.out.println("1. Пошук об’єктів");
                 System.out.println("2. Завантажити та вивести з TXT");
                 System.out.println("3. Завантажити та вивести з JSON");
-                System.out.println("4. Сортувати та вивести працівників (Підменю)");
+                System.out.println("4. Сортувати та вивести працівників (Лямбда-вирази)");
                 System.out.println("5. Додати нового працівника");
                 System.out.println("6. Зберегти поточний стан в TXT");
                 System.out.println("7. Зберегти поточний стан в JSON");
@@ -57,7 +57,7 @@ public class Main {
                     case "0":
                         saveToTxt(company, TXT_FILE);
                         saveToJson(company, JSON_FILE);
-                        System.out.println("Роботу завершено.");
+                        System.out.println("Роботу завершено. Хеш коміту буде у звіті.");
                         running = false;
                         break;
                     default: System.out.println("Некоректний вибір.");
@@ -67,56 +67,38 @@ public class Main {
     }
 
     /**
-     * Виводить підменю вибору критерію сортування та виконує сортування
-     * за допомогою анонімних внутрішніх класів Comparator.
-     * * @param scanner об'єкт для зчитування вибору користувача
+     * Сортування списку за допомогою лямбда-виразів.
+     * @param scanner об'єкт для зчитування вибору критерію
      */
     private static void showSortedEmployees(Scanner scanner) {
         List<Employee> list = company.getEmployees();
         if (list.isEmpty()) {
-            System.out.println("Список працівників порожній.");
+            System.out.println("Колекція порожня.");
             return;
         }
 
-        System.out.println("\n--- ОБЕРІТЬ КРИТЕРІЙ СОРТУВАННЯ ---");
+        System.out.println("\n--- ОБЕРІТЬ КРИТЕРІЙ СОРТУВАННЯ (Лямбда) ---");
         System.out.println("1. За прізвищем (Алфавіт)");
         System.out.println("2. За зарплатою (Зростання)");
         System.out.println("3. За кількістю (Спадання)");
-        System.out.println("0. Повернутися в головне меню");
+        System.out.println("0. Назад");
         System.out.print("Вибір: ");
 
         String sortChoice = scanner.nextLine().trim();
         List<Employee> sortedList = new ArrayList<>(list);
-        Comparator<Employee> comparator = null;
 
         switch (sortChoice) {
             case "1":
-                // Критерій 1: Анонімний клас для сортування за прізвищем
-                comparator = new Comparator<Employee>() {
-                    @Override
-                    public int compare(Employee e1, Employee e2) {
-                        return e1.getLastName().compareToIgnoreCase(e2.getLastName());
-                    }
-                };
+                // Сортування за прізвищем через лямбда-вираз
+                sortedList.sort((e1, e2) -> e1.getLastName().compareToIgnoreCase(e2.getLastName()));
                 break;
             case "2":
-                // Критерій 2: Анонімний клас для сортування за ставкою (salary)
-                comparator = new Comparator<Employee>() {
-                    @Override
-                    public int compare(Employee e1, Employee e2) {
-                        return Double.compare(e1.getSalary(), e2.getSalary());
-                    }
-                };
+                // Сортування за зарплатою через лямбду
+                sortedList.sort((e1, e2) -> Double.compare(e1.getSalary(), e2.getSalary()));
                 break;
             case "3":
-                // Критерій 3: Анонімний клас для сортування за кількістю (quantity)
-                comparator = new Comparator<Employee>() {
-                    @Override
-                    public int compare(Employee e1, Employee e2) {
-                        // Сортування за спаданням: e2 порівнюємо з e1
-                        return Integer.compare(e2.getQuantity(), e1.getQuantity());
-                    }
-                };
+                // Сортування за кількістю (спадання) через лямбду
+                sortedList.sort((e1, e2) -> Integer.compare(e2.getQuantity(), e1.getQuantity()));
                 break;
             case "0": return;
             default:
@@ -124,15 +106,12 @@ public class Main {
                 return;
         }
 
-        Collections.sort(sortedList, comparator);
-        System.out.println("\n--- РЕЗУЛЬТАТ СОРТУВАННЯ ---");
+        System.out.println("\n--- РЕЗУЛЬТАТ СОРТУВАННЯ (Lambda) ---");
         printAll(sortedList);
     }
 
-    /**
-     * Створює нового працівника та додає до колекції компанії.
-     * @param scanner сканер для вводу даних
-     */
+    // Решта методів (createObjectMenu, searchMenu, printAll, load/save) залишаються без змін
+    // але переконайся, що в них не використовується 'var'
     private static void createObjectMenu(Scanner scanner) {
         System.out.println("\n1. Штатний  2. Контрактник  3. Менеджер  4. Стажер");
         System.out.print("Вибір: ");
@@ -143,7 +122,7 @@ public class Main {
             System.out.print("Прізвище: "); String lName = scanner.nextLine().trim();
 
             if (fName.isEmpty() || lName.isEmpty()) {
-                System.out.println("Помилка: Ім'я та прізвище обов'язкові!");
+                System.out.println("Помилка: Поля порожні.");
                 return;
             }
 
@@ -174,20 +153,16 @@ public class Main {
             }
             scanner.nextLine();
             company.addNewEmployee(newEmp, qty);
-            System.out.println("Працівника додано!");
+            System.out.println("Успішно додано.");
         } catch (InputMismatchException e) {
-            System.out.println("Помилка типу даних!"); scanner.nextLine();
+            System.out.println("Помилка вводу."); scanner.nextLine();
         }
     }
 
-    /**
-     * Підменю для пошуку працівників.
-     * @param scanner сканер вводу
-     */
     private static void searchMenu(Scanner scanner) {
         if (company.getEmployees().isEmpty()) return;
-        System.out.println("\n--- ПОШУК ОБ'ЄКТІВ ---");
-        System.out.println("1. За прізвищем 2. За зарплатою 3. За типом");
+        System.out.println("\n--- ПОШУК ---");
+        System.out.println("1. Прізвище 2. Зарплата 3. Тип");
         String c = scanner.nextLine().trim();
         List<Employee> res = null;
         if (c.equals("1")) {
@@ -203,10 +178,6 @@ public class Main {
         printAll(res);
     }
 
-    /**
-     * Друкує список працівників.
-     * @param list список для виводу
-     */
     private static void printAll(List<Employee> list) {
         if (list == null || list.isEmpty()) {
             System.out.println("[Список порожній]");
@@ -217,9 +188,6 @@ public class Main {
         }
     }
 
-    /**
-     * Завантаження з TXT.
-     */
     private static Company loadFromTxt(String fileName) {
         Company newC = new Company("IT СумДУ");
         File file = new File(fileName);
@@ -251,9 +219,6 @@ public class Main {
         return newC;
     }
 
-    /**
-     * Збереження в TXT.
-     */
     private static void saveToTxt(Company c, String f) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(f))) {
             bw.write("Company;" + c.getName()); bw.newLine();
@@ -261,9 +226,6 @@ public class Main {
         } catch (IOException e) {}
     }
 
-    /**
-     * Завантаження з JSON.
-     */
     private static Company loadFromJson(String f) {
         Company newC = new Company("IT СумДУ");
         try (Reader r = new FileReader(f)) {
@@ -285,9 +247,6 @@ public class Main {
         return newC;
     }
 
-    /**
-     * Збереження в JSON.
-     */
     private static void saveToJson(Company c, String f) {
         Gson g = new GsonBuilder().setPrettyPrinting().create();
         try (Writer w = new FileWriter(f)) { g.toJson(c, w); }
