@@ -4,16 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Клас-контейнер, що реалізує агрегацію працівників.
- * Забезпечує управління колекцією ArrayList та логіку унікальності об'єктів.
+ * Клас-контейнер для агрегації працівників компанії.
+ * Керує колекцією об'єктів Employee та надає методи пошуку.
  */
 public class Company {
+    /** Назва компанії */
     private String name;
+    /** Список усіх працівників */
     private List<Employee> employees;
 
     /**
-     * Створює нову компанію з порожнім списком працівників.
-     * @param name Назва компанії
+     * Конструктор компанії.
+     * @param name назва компанії
      */
     public Company(String name) {
         this.name = name;
@@ -26,18 +28,16 @@ public class Company {
 
     /**
      * Додає нового працівника до компанії.
-     * Якщо працівник з таким ім'ям, прізвищем та типом вже існує,
-     * замість дублювання об'єкта збільшується його кількість.
-     *
-     * @param emp Об'єкт працівника для додавання
-     * @param quantity Кількість одиниць
+     * Якщо такий працівник вже існує, збільшує його кількість замість створення дубліката.
+     * * @param emp об'єкт працівника
+     * @param quantity кількість для додавання
      */
     public void addNewEmployee(Employee emp, int quantity) {
-        for (Employee e : employees) {
-            if (e.getType().equals(emp.getType()) &&
-                    e.getFirstName().equals(emp.getFirstName()) &&
-                    e.getLastName().equals(emp.getLastName())) {
-                e.addQuantity(quantity);
+        for (Employee existing : employees) {
+            if (existing.getType().equals(emp.getType()) &&
+                    existing.getFirstName().equalsIgnoreCase(emp.getFirstName()) &&
+                    existing.getLastName().equalsIgnoreCase(emp.getLastName())) {
+                existing.addQuantity(quantity);
                 return;
             }
         }
@@ -46,42 +46,48 @@ public class Company {
     }
 
     /**
-     * Пошук за прізвищем (Лабораторна №10).
-     * @param lastName Прізвище для пошуку
-     * @return Список знайдених об'єктів
+     * Пошук працівників за прізвищем.
+     * @param lastName прізвище для пошуку
+     * @return список знайдених працівників
      */
     public List<Employee> searchByLastName(String lastName) {
-        List<Employee> found = new ArrayList<>();
-        for (Employee e : employees) {
-            if (e.getLastName().equalsIgnoreCase(lastName)) found.add(e);
+        List<Employee> result = new ArrayList<>();
+        for (Employee emp : employees) {
+            if (emp.getLastName().equalsIgnoreCase(lastName)) {
+                result.add(emp);
+            }
         }
-        return found;
+        return result;
     }
 
     /**
-     * Пошук за діапазоном базової ставки.
-     * @param min Мінімальна межа
-     * @param max Максимальна межа
-     * @return Список знайдених об'єктів
+     * Пошук працівників за діапазоном зарплати.
+     * @param min мінімальна зарплата
+     * @param max максимальна зарплата
+     * @return список знайдених працівників
      */
     public List<Employee> searchBySalaryRange(double min, double max) {
-        List<Employee> found = new ArrayList<>();
-        for (Employee e : employees) {
-            if (e.getSalary() >= min && e.getSalary() <= max) found.add(e);
+        List<Employee> result = new ArrayList<>();
+        for (Employee emp : employees) {
+            if (emp.getSalary() >= min && emp.getSalary() <= max) {
+                result.add(emp);
+            }
         }
-        return found;
+        return result;
     }
 
     /**
-     * Пошук за типом посади.
-     * @param type Назва класу (Manager, Intern тощо)
-     * @return Список знайдених об'єктів
+     * Пошук працівників за типом посади.
+     * @param type тип об'єкта (наприклад, "Manager")
+     * @return список знайдених працівників
      */
     public List<Employee> searchByType(String type) {
-        List<Employee> found = new ArrayList<>();
-        for (Employee e : employees) {
-            if (e.getType().equalsIgnoreCase(type)) found.add(e);
+        List<Employee> result = new ArrayList<>();
+        for (Employee emp : employees) {
+            if (emp.getType().equalsIgnoreCase(type)) {
+                result.add(emp);
+            }
         }
-        return found;
+        return result;
     }
 }

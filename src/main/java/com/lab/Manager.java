@@ -1,49 +1,40 @@
 package com.lab;
 
 /**
- * Клас керівника (менеджера), який керує командою.
- * Розширює функціонал {@link FullTimeEmployee}, додаючи облік розміру команди.
+ * Клас, що представляє менеджера компанії.
+ * Успадковує абстрактний клас Employee.
  */
-public class Manager extends FullTimeEmployee {
-    /** Кількість підлеглих у команді менеджера */
+public class Manager extends Employee {
+    /** Бонус за керівництво */
+    private double bonus;
+    /** Кількість підлеглих у команді */
     private int teamSize;
 
     /**
-     * Створює об'єкт менеджера.
-     * @param firstName Ім'я
-     * @param lastName  Прізвище
-     * @param salary    Ставка
-     * @param bonus     Бонус керівника
-     * @param teamSize  Розмір команди (осіб)
+     * Конструктор менеджера.
+     * * @param firstName ім'я
+     * @param lastName прізвище
+     * @param salary базова ставка
+     * @param bonus розмір бонусу
+     * @param teamSize розмір команди
      */
     public Manager(String firstName, String lastName, double salary, double bonus, int teamSize) {
-        super(firstName, lastName, salary, bonus);
-        setType("Manager");
+        super(firstName, lastName, salary);
+        this.bonus = bonus;
         this.teamSize = teamSize;
     }
 
-    /**
-     * Повертає розширену інформацію про менеджера та його команду.
-     * @return рядок з деталями посади
-     */
+    public double getBonus() { return bonus; }
+    public int getTeamSize() { return teamSize; }
+
     @Override
     public String toString() {
-        return String.format("[Менеджер] %s %s, Зарплата: %.2f (з бонусом: %.2f), Команда: %d осіб (Кількість: %d)",
-                getFirstName(), getLastName(), getSalary(), getSalary() + getBonus(), teamSize, getQuantity());
+        return String.format("[%s] %s %s, Зарплата: %.2f (з бонусом: %.2f), Команда: %d осіб (Кількість: %d)",
+                "Менеджер", getFirstName(), getLastName(), getSalary(), getSalary() + bonus, teamSize, getQuantity());
     }
 
-    /**
-     * Формує рядок для TXT файлу.
-     * Формат: Тип;Ім'я;Прізвище;Ставка;Бонус;Команда;Кількість
-     * @return рядок даних
-     */
     @Override
     public String toFileString() {
-        return "Manager;" + getFirstName() + ";" + getLastName() + ";" +
-                getSalary() + ";" + getBonus() + ";" + teamSize + ";" + getQuantity();
-    }
-
-    public int getTeamSize() {
-        return teamSize;
+        return getType() + ";" + getFirstName() + ";" + getLastName() + ";" + getSalary() + ";" + bonus + ";" + teamSize + ";" + getQuantity();
     }
 }
