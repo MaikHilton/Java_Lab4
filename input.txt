@@ -9,3 +9,4 @@ Manager;Test;Testovi;23675.0;2600.0;1;5
 FullTimeEmployee;Test;Testovione;30000.0;5000.0;1
 Manager;Test;Testtwo;31000.0;5000.0;10;2
 FullTimeEmployee;Test;DBtest;30000.0;5000.0;2
+Intern;Testlab13;Lab13;10000.0;SumDU;1

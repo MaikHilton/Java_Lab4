@@ -18,8 +18,8 @@
       "quantity": 1
     },
     {
-      "teamSize": 8,
       "bonus": 12000.0,
+      "teamSize": 8,
       "type": "Manager",
       "firstName": "Іван",
       "lastName": "Яценко",
@@ -51,8 +51,8 @@
       "quantity": 1
     },
     {
-      "teamSize": 1,
       "bonus": 2600.0,
+      "teamSize": 1,
       "type": "Manager",
       "firstName": "Test",
       "lastName": "Testovi",
@@ -68,8 +68,8 @@
       "quantity": 1
     },
     {
-      "teamSize": 10,
       "bonus": 5000.0,
+      "teamSize": 10,
       "type": "Manager",
       "firstName": "Test",
       "lastName": "Testtwo",
@@ -83,6 +83,14 @@
       "lastName": "DBtest",
       "salary": 30000.0,
       "quantity": 2
+    },
+    {
+      "universityName": "SumDU",
+      "type": "Intern",
+      "firstName": "Testlab13",
+      "lastName": "Lab13",
+      "salary": 10000.0,
+      "quantity": 1
     }
   ]
 }
